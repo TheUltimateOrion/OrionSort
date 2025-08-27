@@ -16,10 +16,20 @@
 
 class SoundEngine
 {
+public:
+    enum class Waveform
+    {
+        Sine,
+        Square,
+        Triangle,
+        Sawtooth,
+    };
+
 private:
-    ALuint m_src {0};
-    short* m_samples {nullptr};
-    ALenum m_err {AL_NO_ERROR};
+    ALuint   m_src {0};
+    short*   m_samples {nullptr};
+    ALenum   m_err {AL_NO_ERROR};
+    Waveform m_waveform {Waveform::Sine};
 
 public:
     SoundEngine() noexcept = default;
@@ -32,7 +42,9 @@ public:
 
     [[nodiscard]] Utils::Signal init();
 
-    [[nodiscard]] Utils::Signal load(float t_freq);
+    [[nodiscard]] Utils::Signal load(float t_freq, float t_seconds);
+
+    inline void                 setWaveform(Waveform t_waveform) { m_waveform = t_waveform; }
 
     [[nodiscard]] Utils::Signal play();
 };

@@ -167,6 +167,6 @@ template <typename T> struct std::formatter<Sort::SortArray<T>> : std::formatter
             if (it != a.end() - 1) { buf += ", "; }
         }
         buf += " }";
-        return std::formatter<std::string>::format(buf, ctx);
+        return std::formatter<std::string>::format(std::format("{}", buf), ctx);
     }
 };

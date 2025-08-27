@@ -303,7 +303,7 @@ namespace Renderer
 
         if (auto appShared = m_app.lock())
         {
-            ImGui::Text(std::format("{}", appShared->getSorter()->elems).c_str());
+            // ImGui::Text(std::format("{}", appShared->getSorter()->elems).c_str());
 
             Sort::Flags& flags = appShared->getSorter()->getFlags();
             if (ImGui::CollapsingHeader("Sorting Data"))

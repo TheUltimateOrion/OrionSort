@@ -5,9 +5,9 @@
     #include "renderer/ui.h"
 #endif
 
+#include "audio/system.h"
 #include "renderer/context.h"
 #include "renderer/disp_type.h"
-#include "sound/sound_engine.h"
 
 #ifndef _TESTING_
     #include <imgui.h>
@@ -29,7 +29,7 @@ namespace Core
         std::unique_ptr<Renderer::SortView> m_sortView;
         std::shared_ptr<Sort::BaseSort>     m_sorter;
 
-        SoundEngine*                        m_soundEngine {nullptr};
+        Audio::System*                      m_audioSystem {nullptr};
         Renderer::RenderContext*            m_ctx {nullptr};
 
         Renderer::UI                        m_UI {nullptr};

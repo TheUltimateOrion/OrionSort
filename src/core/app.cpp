@@ -1,6 +1,7 @@
 #include "core/app.h"
 
 #include "core/logging/logging.h"
+#include "core/platform/display.h"
 #include "sort/exchange/bubble.h"
 #include "utils/common.h"
 
@@ -252,71 +253,76 @@ namespace Core
         colors[ImGuiCol_ModalWindowDimBg]                    = ImVec4(0.00f, 0.00f, 0.00f, 0.53f);
     }
 
-    void App::createAudioThread()
-    {
-        m_audioThread = std::make_optional<std::thread>(
-            [this]()
-            {
-                while (true)
-                {
-                    if (!m_sorter)
-                    {
-                        std::this_thread::sleep_for(100ms);
-                        continue;
-                    }
+    // void App::createAudioThread()
+    // {
+    //     m_audioThread = std::make_optional<std::thread>(
+    //         [this]()
+    //         {
+    //             while (true)
+    //             {
+    //                 if (!m_sorter)
+    //                 {
+    //                     std::this_thread::sleep_for(100ms);
+    //                     continue;
+    //                 }
 
-                    if (m_sorter->getFlags().hasQuit) { break; }
+    // if (m_sorter->getFlags().hasQuit) { break; }
 
-                    if (m_sorter->elems.empty() || m_sorter->getFirst() >= m_sorter->elems.size())
-                    {
-                        std::this_thread::sleep_for(100ms);
-                        continue;
-                    }
+    // if (m_sorter->elems.empty() || m_sorter->getFirst() >= m_sorter->elems.size())
+    // {
+    //     std::this_thread::sleep_for(100ms);
+    //     continue;
+    // }
 
-                    size_t index = m_sorter->getFirst();
+    // size_t index = m_sorter->getFirst();
 
-                    float  freq  = m_sorter->elems[index]
-                               * (m_ctx->winHeight / static_cast<float>(m_sorter->elems.size()));
+    // float  freq  = m_sorter->elems[index]
+    //            * (m_ctx->winHeight / static_cast<float>(m_sorter->elems.size()));
 
-                    if (m_sorter->getFlags().isSorting || m_sorter->getFlags().isShuffling
-                        || m_sorter->getFlags().isChecking)
-                    {
-                        if (m_soundEngine->load(freq) == Utils::Signal::Error)
-                        {
-                            LOG_ERROR("Could not load audio buffer");
-                            if (m_soundEngine->alGetLastError() != AL_NO_ERROR)
-                            {
-                                LOG_ERROR(
-                                    "Error loading audio with code: "
-                                    << m_soundEngine->alErrorString(m_soundEngine->alGetLastError())
-                                    << "(" << m_soundEngine->alGetLastError() << ")"
-                                );
-                                return;
-                            }
-                        }
+    // float framerate = Core::Platform::Display::getFramerate();
+    // float frameTime = (framerate > 0.01f) ? (1.0f / framerate) : 0.0f;
+    // float sortTime  = 1.0f / Sort::BaseSort::s_speed;
+    // float seconds   = std::max(frameTime, sortTime);
 
-                        if (m_soundEngine->play() == Utils::Signal::Error)
-                        {
-                            LOG_ERROR("Could not play audio buffer");
-                            if (m_soundEngine->alGetLastError() != AL_NO_ERROR)
-                            {
-                                LOG_ERROR(
-                                    "Error playing audio with code: "
-                                    << m_soundEngine->alErrorString(m_soundEngine->alGetLastError())
-                                    << "(" << m_soundEngine->alGetLastError() << ")"
-                                );
-                                return;
-                            }
-                        }
-                    }
+    // if (m_sorter->getFlags().isSorting || m_sorter->getFlags().isShuffling
+    //     || m_sorter->getFlags().isChecking)
+    // {
+    //     if (m_soundEngine->load(freq, seconds) == Utils::Signal::Error)
+    //     {
+    //         LOG_ERROR("Could not load audio buffer");
+    //         if (m_soundEngine->alGetLastError() != AL_NO_ERROR)
+    //         {
+    //             LOG_ERROR(
+    //                 "Error loading audio with code: "
+    //                 << m_soundEngine->alErrorString(m_soundEngine->alGetLastError())
+    //                 << "(" << m_soundEngine->alGetLastError() << ")"
+    //             );
+    //             return;
+    //         }
+    //     }
 
-                    std::this_thread::sleep_for(
-                        std::chrono::milliseconds(static_cast<int>(0.04 * 1000))
-                    );
-                }
-            }
-        );
-    }
+    // if (m_soundEngine->play() == Utils::Signal::Error)
+    // {
+    //     LOG_ERROR("Could not play audio buffer");
+    //     if (m_soundEngine->alGetLastError() != AL_NO_ERROR)
+    //     {
+    //         LOG_ERROR(
+    //             "Error playing audio with code: "
+    //             << m_soundEngine->alErrorString(m_soundEngine->alGetLastError())
+    //             << "(" << m_soundEngine->alGetLastError() << ")"
+    //         );
+    //         return;
+    //     }
+    // }
+    // }
+
+    // std::this_thread::sleep_for(
+    //     std::chrono::milliseconds(static_cast<int>(0.04 * 1000))
+    // );
+    // }
+    // }
+    // );
+    // }
 
     void App::createSortThread()
     {
@@ -424,20 +430,14 @@ namespace Core
     Utils::Signal App::initAudio()
     {
         LOG_INFO("Initializing audio subsystem");
-        m_soundEngine = SoundEngine::Get();
-        if (m_soundEngine->init() == Utils::Signal::Error)
+        m_audioSystem = Audio::System::get();
+        if (m_audioSystem->init() == Utils::Signal::Error)
         {
             LOG_ERROR("Sound could not be initialized");
-            if (m_soundEngine->alGetLastError() != AL_NO_ERROR)
-            {
-                LOG_ERROR(
-                    "Error playing audio with code: "
-                    << m_soundEngine->alErrorString(m_soundEngine->alGetLastError()) << "("
-                    << m_soundEngine->alGetLastError() << ")"
-                );
-                return Utils::Signal::Error;
-            }
+            return Utils::Signal::Error;
         }
+
+        // m_soundEngine->setWaveform(SoundEngine::Waveform::Sine);
         LOG_INFO("Audio subsystem initialized successfully");
         return Utils::Signal::Success;
     }
@@ -519,7 +519,7 @@ namespace Core
 
         LOG_INFO("Creating audio thread");
 
-        createAudioThread();
+        // createAudioThread();
 
         LOG_INFO("Starting main loop");
 

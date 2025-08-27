@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/dist")
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-deprecated-literal-operator -Wno-unused-parameter -Wno-sign-compare -g3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og -Wall -Wextra -Wno-deprecated-literal-operator -Wno-unused-parameter -Wno-sign-compare")
 set(REPO "https://www.github.com/TheUltimateOrion/Sorting")
 
 option(BUILD_TESTING "Build Test Executable?" OFF)

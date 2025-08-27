@@ -145,5 +145,9 @@
         "*.rh": "cpp",
         "shared_mutex": "cpp"
     },
+    "cmake.debugConfig": {
+        "miDebuggerPath": "gdb",
+        "stopAtEntry": false
+    },
     "java.configuration.updateBuildConfiguration": "disabled"
 }

@@ -1,4 +1,4 @@
-#include "sound/sound_engine.h"
+#include "core/audio/sound_engine.h"
 
 #include "core/logging/logging.h"
 
@@ -81,7 +81,7 @@ Utils::Signal SoundEngine::init()
 }
 
 // Stream one chunk into the queue. Safe to call every tick.
-Utils::Signal SoundEngine::load(float t_freq)
+Utils::Signal SoundEngine::load(float t_freq, float t_seconds)
 {
     if (!s_bufsMade)
     {
@@ -90,8 +90,8 @@ Utils::Signal SoundEngine::load(float t_freq)
         s_bufsMade = true;
     }
 
-    float const       seconds = 0.04f;
-    std::size_t const frames  = static_cast<std::size_t>(seconds * kRate);
+    float const       seconds = t_seconds;
+    std::size_t const frames  = static_cast<std::size_t>(seconds * static_cast<float>(kRate));
 
     // Reuse sample workspace.
     if (m_samples)
@@ -99,14 +99,29 @@ Utils::Signal SoundEngine::load(float t_freq)
         delete[] m_samples;
         m_samples = nullptr;
     }
-    m_samples = new short[frames];
+    m_samples         = new short[frames];
 
-    // Generate mono sine into workspace.
+    float const twoPi = 2.0f * static_cast<float>(M_PI);
+
+    // Generate mono waveform into workspace.
     for (std::size_t i = 0; i < frames; ++i)
     {
-        float const s = std::sin(
-            2.0f * static_cast<float>(M_PI) * t_freq * (static_cast<float>(i) / kRate)
-        );
+        float const phase = twoPi * t_freq * (static_cast<float>(i) / static_cast<float>(kRate));
+        float       s     = 0.0f;
+
+        switch (m_waveform)
+        {
+            case Waveform::Sine  : s = std::sin(phase); break;
+            case Waveform::Square: s = std::sin(phase) >= 0.0f ? 1.0f : -1.0f; break;
+            case Waveform::Triangle:
+                s = 2.0f * std::abs(2.0f * (phase / twoPi - std::floor(phase / twoPi + 0.5f)))
+                  - 1.0f;
+                break;
+            case Waveform::Sawtooth:
+                s = 2.0f * (phase / twoPi - std::floor(phase / twoPi + 0.5f));
+                break;
+        }
+
         m_samples[i] = static_cast<short>(std::round(32760.0f * s));
     }
 
