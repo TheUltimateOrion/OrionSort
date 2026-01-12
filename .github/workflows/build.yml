@@ -51,7 +51,11 @@ jobs:
           clang:u
           cmake:u
           ninja:u
-    
+          nsis:u
+          
+    - name: Update Linux Packages
+      if: ${{ contains( matrix.platform.name, 'linux') }}
+      run: sudo apt-get update
     - name: Install Linux Prerequisites
       if: ${{ contains( matrix.platform.name, 'linux') }}
       run: >
