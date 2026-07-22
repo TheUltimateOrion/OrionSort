@@ -24,7 +24,7 @@ int main()
 #endif
 
     std::shared_ptr<Core::App>
-        app = std::make_shared<Core::App>();  // Create a unique pointer to App
+        app = std::make_shared<Core::App>();
 
     if (app->init() != Utils::Signal::Success) { return EXIT_FAILURE; }
 
